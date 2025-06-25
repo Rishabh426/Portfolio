@@ -31,15 +31,6 @@ export function ResumeSection() {
       coursework: ["Mathematics", "Physics", "Chemistry", "Computer Science"],
     },
   ]
-
-  const certifications = [
-    "AWS Certified Developer Associate",
-    "Google Cloud Professional Developer",
-    "Meta React Developer Certificate",
-    "MongoDB Certified Developer",
-    "Docker Certified Associate",
-  ]
-
   return (
     <section
       id="resume"

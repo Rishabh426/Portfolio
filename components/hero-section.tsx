@@ -163,7 +163,7 @@ export function HeroSection() {
               isDark ? "text-white" : "text-gray-900"
             }`}
           >
-            Hi, I'm{" "}
+            Hi, I&apos;m{" "}
             <span
               className={`text-transparent bg-clip-text bg-gradient-to-r transition-all duration-500 ${
                 isDark ? "from-blue-400 to-cyan-400" : "from-blue-600 to-indigo-600"
