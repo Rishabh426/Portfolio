@@ -10,44 +10,6 @@ interface GitHubStats {
   error: boolean;
 }
 
-function computeStreaks(dates: string[]): { current: number; longest: number } {
-  if (!dates.length) return { current: 0, longest: 0 };
-
-  const unique = Array.from(new Set(dates)).sort();
-
-  let longest = 1;
-  let temp = 1;
-  for (let i = 1; i < unique.length; i++) {
-    const prev = new Date(unique[i - 1]);
-    const curr = new Date(unique[i]);
-    const diff = (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
-    if (diff === 1) {
-      temp++;
-      longest = Math.max(longest, temp);
-    } else {
-      temp = 1;
-    }
-  }
-
-  // Current streak: walk back from today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let current = 0;
-  const check = new Date(today);
-
-  while (true) {
-    const dateStr = check.toISOString().split("T")[0];
-    if (unique.includes(dateStr)) {
-      current++;
-      check.setDate(check.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-
-  return { current, longest };
-}
-
 export function Sidebar() {
   const quotes = [
     {
@@ -67,47 +29,14 @@ export function Sidebar() {
 
   useEffect(() => {
     async function fetchGitHubStats() {
-      const username = "Rishabh426";
-      const headers: HeadersInit = {};
-
       try {
-        const reposRes = await fetch(
-          `https://api.github.com/users/${username}/repos?per_page=100&type=owner`,
-          { headers },
-        );
-        if (!reposRes.ok) throw new Error("Failed to fetch repos");
-        const repos: { name: string; fork: boolean }[] = await reposRes.json();
-        const ownRepos = repos.filter((r) => !r.fork).map((r) => r.name);
-
-        const since = new Date();
-        since.setFullYear(since.getFullYear() - 1);
-        const sinceISO = since.toISOString();
-
-        const commitDateArrays = await Promise.all(
-          ownRepos.slice(0, 20).map(async (repo) => {
-            try {
-              const res = await fetch(
-                `https://api.github.com/repos/${username}/${repo}/commits?author=${username}&since=${sinceISO}&per_page=100`,
-                { headers },
-              );
-              if (!res.ok) return [];
-              const commits: { commit: { author: { date: string } } }[] =
-                await res.json();
-              return commits.map((c) => c.commit.author.date.split("T")[0]);
-            } catch {
-              return [];
-            }
-          }),
-        );
-
-        const allDates = commitDateArrays.flat();
-        const totalCommits = allDates.length;
-        const { current, longest } = computeStreaks(allDates);
-
+        const res = await fetch("/api/github-stats");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
         setStats({
-          currentStreak: current,
-          longestStreak: longest,
-          totalCommits,
+          currentStreak: data.currentStreak,
+          longestStreak: data.longestStreak,
+          totalCommits: data.totalCommits,
           loading: false,
           error: false,
         });
