@@ -1,6 +1,73 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
+function useTypewriter(
+  text: string,
+  speedMs: number = 90,
+  startDelayMs: number = 300,
+): {
+  displayed: string;
+  done: boolean;
+} {
+  const [displayed, setDisplayed] = useState<string>("");
+  const [done, setDone] = useState<boolean>(false);
+
+  useEffect(() => {
+    let i = 0;
+    let intervalId: ReturnType<typeof setInterval>;
+
+    const startTimeout = setTimeout(() => {
+      intervalId = setInterval(() => {
+        i += 1;
+        setDisplayed(text.slice(0, i));
+        if (i >= text.length) {
+          clearInterval(intervalId);
+          setDone(true);
+        }
+      }, speedMs);
+    }, startDelayMs);
+
+    return () => {
+      clearTimeout(startTimeout);
+      clearInterval(intervalId);
+    };
+  }, [text, speedMs, startDelayMs]);
+
+  return { displayed, done };
+}
+
+interface SkillCategory {
+  name: string;
+  skills: string[];
+}
+
+const SKILL_CATEGORIES: SkillCategory[] = [
+  { name: "Frontend", skills: ["React.js", "Next.js"] },
+  { name: "Backend", skills: ["Node.js", "Express.js"] },
+  { name: "Databases", skills: ["PostgreSQL", "MongoDB", "SQL"] },
+  { name: "DevOps", skills: ["AWS", "Docker", "Nginx"] },
+  { name: "Languages", skills: ["C/C++", "JavaScript", "Typescript"] },
+];
+
+function BlinkingCursor() {
+  return (
+    <span
+      className="inline-block w-[0.5ch] ml-1 align-middle bg-foreground animate-pulse"
+      style={{ height: "0.85em" }}
+      aria-hidden="true"
+    />
+  );
+}
+
 export function MainContent() {
+  const fullName = "Rishabh Sharma";
+  const { displayed } = useTypewriter(fullName, 90, 300);
+
+  const firstLine = "Rishabh";
+  const typedFirst = displayed.slice(0, firstLine.length);
+  const typedSecond = displayed.slice(firstLine.length + 1); // +1 skips the space
+
   return (
     <div className="flex-1 border-r border-border/50 overflow-y-auto">
       <div className="max-w-2xl mx-auto p-8 space-y-8">
@@ -16,13 +83,19 @@ export function MainContent() {
 
         {/* Main Heading */}
         <div className="space-y-4">
-          <h1 className="text-6xl font-bold leading-tight text-foreground">
-            Rishabh
+          <h1 className="text-6xl font-bold leading-tight text-foreground min-h-[2.4em]">
+            {typedFirst}
+            {typedSecond.length === 0 && <BlinkingCursor />}
             <br />
-            Sharma
+            {typedSecond}
+            {typedFirst.length === firstLine.length &&
+              typedSecond.length > 0 && <BlinkingCursor />}
           </h1>
           <p className="text-xs font-mono text-muted-foreground tracking-wide">
-            FULL STACK DEVELOPER / BACKEND ENGINEER
+            <b>
+              UPCOMING SDE @ GLOBAL LOGIC | BACKEND DEVELOPER | COMPETITIVE
+              PROGRAMMER
+            </b>
           </p>
         </div>
 
@@ -30,12 +103,53 @@ export function MainContent() {
         <p className="text-base leading-relaxed text-muted-foreground max-w-xl">
           Building scalable systems and high-performance backend architectures.
           Specialized in distributed systems, performance optimization, and
-          clean code architecture. 700+ DSA problems solved across competitive
+          clean code architecture. 1000+ DSA problems solved across competitive
           programming platforms.
         </p>
 
+        <div className="border border-border/50 rounded-sm overflow-hidden hover:border-muted-foreground/40 transition-colors duration-300">
+          <div className="flex items-center gap-3 px-5 py-3 border-b border-border/50 bg-secondary/5">
+            <div className="flex gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500/70"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500/70"></div>
+            </div>
+            <div className="text-xs text-muted-foreground font-mono">
+              skills.json
+            </div>
+          </div>
+
+          <div className="px-5 py-5 font-mono text-xs leading-relaxed">
+            <div className="text-muted-foreground">{"{"}</div>
+            {SKILL_CATEGORIES.map((category, idx) => (
+              <div key={category.name} className="pl-4">
+                <span className="text-foreground">
+                  &quot;{category.name.toLowerCase()}&quot;
+                </span>
+                <span className="text-muted-foreground">: [</span>
+                <span className="block pl-4">
+                  {category.skills.map((skill, skillIdx) => (
+                    <span key={skill}>
+                      <span className="px-2 py-0.5 my-0.5 inline-block rounded-sm border border-border/50 text-muted-foreground hover:border-green-500/50 hover:text-green-400 transition-colors duration-200 cursor-default">
+                        &quot;{skill}&quot;
+                      </span>
+                      {skillIdx < category.skills.length - 1 && (
+                        <span className="text-muted-foreground">, </span>
+                      )}
+                    </span>
+                  ))}
+                </span>
+                <span className="text-muted-foreground">
+                  ]{idx < SKILL_CATEGORIES.length - 1 ? "," : ""}
+                </span>
+              </div>
+            ))}
+            <div className="text-muted-foreground">{"}"}</div>
+          </div>
+        </div>
+
         {/* Profile Card */}
-        <div className="mt-12 border border-border/50 rounded-sm p-6 flex items-center gap-4">
+        <div className="mt-12 border border-border/50 rounded-sm p-6 flex items-center gap-4 hover:border-muted-foreground/40 transition-colors duration-300">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/50 to-primary/20 flex items-center justify-center">
             <span className="text-sm font-bold">RS</span>
           </div>
@@ -50,7 +164,7 @@ export function MainContent() {
           <div className="flex gap-3">
             <a
               href="https://x.com/Ronnie004681166"
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2s9 5 20 5a9.5 9.5 0 00-9-5.5c4.75 2.25 7-7 7-7z" />
@@ -58,7 +172,7 @@ export function MainContent() {
             </a>
             <a
               href="https://github.com/Rishabh426"
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
@@ -66,7 +180,7 @@ export function MainContent() {
             </a>
             <a
               href="mailto:sharmarishabh9900@gmail.com"
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground hover:scale-110 transition-all duration-200"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path
